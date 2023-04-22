@@ -1,7 +1,7 @@
 all:
 	echo TODO
 
-MINIFIER := java -jar /tmp/closure-compiler-read-only/build/compiler.jar --language_in ECMASCRIPT5 --js -
+MINIFIER := echo HELLO
 
 PREAMBLE := '/*! glm-js built '$(shell date --rfc-3339=seconds)' | (c) humbletim | http://humbletim.github.io/glm-js */'
 

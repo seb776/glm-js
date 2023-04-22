@@ -952,7 +952,27 @@ GLM.$template['declare<T,V,...>'](
           'vec<N>,vec<N>': function(a, b) {
               return this.GLM.length(b.sub(a));
           }
+      },
+	  mod: {
+          'vec<N>,vec<N>': function(v, n) {
+            var ret = new this.GLM.vecN(new (v.elements.constructor)(N));
+             var re = ret.elements,
+                 ve = v.elements,
+                 ne = n.elements;
+             for(var i = 0; i < N; i++)
+                 re[i] = this.GLM.abs(ve[i]%ne[i]);
+             return ret;
+          },
+		  'vec<N>,float': function(v, n) {
+            var ret = new this.GLM.vecN(new (v.elements.constructor)(N));
+             var re = ret.elements,
+                 ve = v.elements;
+             for(var i = 0; i < N; i++)
+                 re[i] = this.GLM.abs(ve[i]%n);
+             return ret;
+          }
       }
+	  // z0rg addition
    });
 GLM.$template['declare<T,V,number>'](
    {
@@ -1053,6 +1073,28 @@ GLM.$template.extend(
          "quat": function(o) { return 4 === GLM.$to_array(o).filter(Boolean).length; }
 
       },
+	  
+	  abs: {
+		  // z0rg addition
+		 "float": function(v) { return Math.abs(v); },
+		 "vec2": function(v) { return {x:Math.abs(v.x), y:Math.abs(v.y)}; },
+         "vec3": function(v) { return {x:Math.abs(v.x), y:Math.abs(v.y), z:Math.abs(v.z)}; },
+         "vec4": function(v) { return {x:Math.abs(v.x), y:Math.abs(v.y), z:Math.abs(v.z), w:Math.abs(v.w)}; },
+	  },
+	  sin: {
+		  // z0rg addition
+		 "float": function(v) { return Math.sin(v); },
+		 "vec2": function(v) { return {x:Math.sin(v.x), y:Math.sin(v.y)}; },
+         "vec3": function(v) { return {x:Math.sin(v.x), y:Math.sin(v.y), z:Math.sin(v.z)}; },
+         "vec4": function(v) { return {x:Math.sin(v.x), y:Math.sin(v.y), z:Math.sin(v.z), w:Math.sin(v.w)}; },
+	  },
+	  cos: {
+		  // z0rg addition
+		 "float": function(v) { return Math.cos(v); },
+		 "vec2": function(v) { return {x:Math.cos(v.x), y:Math.cos(v.y)}; },
+         "vec3": function(v) { return {x:Math.cos(v.x), y:Math.cos(v.y), z:Math.cos(v.z)}; },
+         "vec4": function(v) { return {x:Math.cos(v.x), y:Math.cos(v.y), z:Math.cos(v.z), w:Math.cos(v.w)}; },
+	  },
 
       $to_object: {
          "vec2": function(v) { return {x:v.x, y:v.y}; },
@@ -1238,12 +1280,18 @@ GLM.$template['declare<T,V,...>'](
          "float,float": function(a,b) { return this.GLM._min(a,b); },
          "vec<N>,float": function(o,b) {
              return new this.GLM.vecN(this.GLM.$to_array(o).map(function(v){ return this.GLM._min(v,b); }.bind(this)));
+         },
+		 "vec<N>,vec<N>": function(o,b) {
+             return new this.GLM.vecN(this.GLM.$to_array(o).map(function(v, i){ return this.GLM._min(v,b.elements[i]); }.bind(this)));
          }
       },
       max: {
          "float,float": function(a,b) { return this.GLM._max(a,b); },
          "vec<N>,float": function(o,b) {
             return new this.GLM.vecN(this.GLM.$to_array(o).map(function(v){ return this.GLM._max(v,b); }.bind(this)));
+         },
+		 "vec<N>,vec<N>": function(o,b) {
+             return new this.GLM.vecN(this.GLM.$to_array(o).map(function(v, i){ return this.GLM._max(v,b.elements[i]); }.bind(this)));
          }
       },
       equal: {
@@ -1471,6 +1519,7 @@ GLM.$template['declare<T,V,...>'](
          _sub: function(me,you) {
             return (this.GLM.$to_array(me).map(function(v,_) { return v - you[_]; }));
          },
+		 'vec<N>,float': function(me,you) { return new this.GLM.vecN(this._sub(me,[you,you,you,you])); }, // z0rg addition
          'vec<N>,vec<N>': function(me,you) { return new this.GLM.vecN(this._sub(me,you)); },
          'vec<N>,uvec<N>': function(me,you) { return new this.GLM.vecN(this._sub(me,you)); },
          'uvec<N>,uvec<N>': function(me,you) { return new this.GLM.uvecN(this._sub(me,you)); },
@@ -1529,6 +1578,11 @@ GLM.$template['declare<T,V,...>'](
          'vec<N>,float': function(me, k) {
             return new this.GLM.vecN(
                this.GLM.$to_array(me).map(function(v,_) { return v / k; })
+            );
+         },
+		 'vec<N>,vec<N>': function(me, you) {
+            return new this.GLM.vecN(
+                this.GLM.$to_array(me).map(function(v,_) { return v  / you[_]; })
             );
          }
       },
@@ -2189,6 +2243,16 @@ GLM.quat = GLM.$template.GLMType(
                 enumerable: false,
                 get: function() { return new GLM.vec2(this.y,this.x); },
                 set: function(v) { v=GLM.vec2(v); this.y = v[0]; this.x = v[1]; }
+            },
+			xx: {
+                enumerable: false,
+                get: function() { return new GLM.vec2(this.y,this.y); },
+                // set: function(v) { v=GLM.vec2(v); this.y = v[0]; this.x = v[1]; }
+            },
+			yy: {
+                enumerable: false,
+                get: function() { return new GLM.vec2(this.y,this.y); },
+                // set: function(v) { v=GLM.vec2(v); this.y = v[0]; this.x = v[1]; }
             }
         },
         3: {
